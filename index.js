@@ -152,3 +152,94 @@ Array.prototype.unique = function () {
 }
 const arrEight = [224, 225, 226, 224, 226, 2211, 2299, 2288, 225];
 console.log(arrEight.unique()); // [ 2211, 224, 225, 226, 2288, 2299 ]
+
+// JSON.parse(JSON.strinify())
+// 对简单对象实用，但是对函数，稀疏数组和正则对象则无效
+// 对象的循环引用会抛出错误
+// 1.针对不同类型，做特殊处理
+const isType = (obj, type) => {
+  if (typeof obj !== 'object') return false;
+  const typeString = Object.prototype.toString.call(obj);
+  let flag;
+
+  switch(type) {
+    case 'Array':
+      flag = typeString === '[object Array]';
+      break;
+    case 'Date':
+      flag = typeString === '[object Date]';
+      break;
+    case 'RegExp':
+      flag = typeString === '[object RegExp]';
+      break;
+    default:
+      flag = false;
+  }
+  return flag;
+};
+// 2.针对正则表达式，再做区分
+const getRegExp = re => {
+  var flags = '';
+  if (re.global) flags += 'g';
+  if (re.ignoreCase) flags += 'i';
+  if (re.multiline) flags += 'm';
+  return flags;
+}
+const clone = parent => {
+  const parents = [];
+  const children = [];
+
+  const _clone = parent => {
+    if (parent === null) return null;
+    if (typeof parent !== 'object') return parent;
+
+    let child, proto;
+
+    if (isType(parent, 'Array')) {
+      child = [];
+    } else if (isType(parent, 'RegExp')) {
+      child = new RegExp(parent.source, getRegExp(parent));
+      if (parent.lastIndex) child.lastIndex = parent.lastIndex;
+    } else if (isType(parent, 'Date')) {
+      child = new Date(parent.getTime());
+    } else {
+      proto = Object.getPrototypeOf(parent);
+      child = Object.create(proto);
+    }
+
+    const index = parents.indexOf(parent);
+    if (index != -1) {
+      return children[index];
+    }
+    parents.push(parent);
+    children.push(child);
+
+    for (let i in parent) {
+      child[i] = _clone(parent[i]);
+    }
+
+    return child;
+  };
+
+  return _clone(parent);
+}
+
+function person(pname) {
+  this.name = pname;
+}
+const Frank = new person('Frank');
+function say() {
+  console.log('hello world');
+}
+
+const oldObj = {
+  a: say,
+  c: new RegExp('ab+c', 'i'),
+  d: Frank,
+}
+oldObj.b = oldObj;
+const newObj = clone(oldObj);
+console.log(newObj.a, oldObj.a);
+console.log(newObj.b, oldObj.b);
+console.log(newObj.c, oldObj.c);
+console.log(newObj.d.constructor, oldObj.d.constructor); // /ab+c/i /ab+c/i
