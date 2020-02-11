@@ -223,7 +223,7 @@ const clone = parent => {
 
   return _clone(parent);
 }
-
+// 3.测试
 function person(pname) {
   this.name = pname;
 }
@@ -243,3 +243,98 @@ console.log(newObj.a, oldObj.a);
 console.log(newObj.b, oldObj.b);
 console.log(newObj.c, oldObj.c);
 console.log(newObj.d.constructor, oldObj.d.constructor); // /ab+c/i /ab+c/i
+
+// Storage封装
+const setStorage = (key, value) => {
+  window.localStorage.setItem(key, JSON.stringify(value))
+}
+
+const getStorage = (key) => {
+  let value = window.localStorage.getItem(key)
+  try {
+    value = JSON.parse(value)
+  } catch (error) {}
+
+  return value
+}
+
+const removeStorage = (key) => {
+  window.localStorage.removeItem(key)
+}
+
+const clearStorage = () => {
+  window.localStorage.clear()
+}
+
+const setSsionStorage = (key, value) => {
+  window.sessionStorage.setItem(key, JSON.stringify(value))
+}
+
+const getSsionStorage = (key) => {
+  let value = window.sessionStorage.getItem(key)
+  try {
+    value = JSON.parse(value)
+  } catch (error) {}
+
+  return value
+}
+
+const removeSsionStorage = (key) => {
+  window.sessionStorage.removeItem(key)
+}
+
+const clearSsionStorage = () => {
+  window.sessionStorage.clear()
+}
+
+// Cookie封装
+/*
+ * 设置cookie
+ * params [string] name [name是cookie中的名]
+ * params [string] value [value是对应的值]
+ * params [string] exdays [是多久过期(单位为分钟)]
+ */
+export const setCookie = (name, value, exdays) => {
+  const d = new Date()
+  d.setTime(d.getTime() + (exdays * 60 * 1000))
+  const expires = 'expires=' + d.toGMTString()
+  document.cookie = name + '=' + value + '; ' + expires
+}
+
+//获取cookie
+/*
+ * 获取cookie
+ * params [string] name [name是cookie中的名]
+ */
+export const getCookie = (name) => {
+  const arr = document.cookie.split('; ')
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].split('=')[0] === name) {
+      return arr[i].split('=')[1]
+    }
+  }
+  return ''
+}
+
+//删除cookie
+/*
+ * 设置cookie
+ * params [string] name [name是cookie中的名]
+ */
+export const removeCookie = (name) => {
+  setCookie(name, 1, -1)
+}
+
+// Promise封装
+const Promise = require('bluebird');
+function createPromiseCallback() {
+  let cb;
+  const promise = new Promise(function(resolve, reject) {
+    cb = function(err, data) {
+      if (err) return reject(err);
+      return resolve(data);
+    };
+  });
+  cb.promise = promise;
+  return cb;
+}
